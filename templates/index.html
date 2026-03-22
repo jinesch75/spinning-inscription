@@ -185,7 +185,16 @@
     <h2 class="section-title">Accès administration</h2>
     <div class="section-sub">Réservé à Julie 🔒</div>
     <label for="admin-pass">Mot de passe</label>
-    <input type="password" id="admin-pass" placeholder="••••••••"��W�F�v��&�b�WfV�B�W����tV�FW"r�F�F֖���v�ₒ"���F�b6�73�&W'&�"��6r"�C�&��v���W'&�"#���BFR76R��6�'&V7B���F�c��F�b7G��S�&�&v���F��g��#��'WGF��6�73�&'F�'F��&��'�"��6Ɩ6��&F�F֖���v�ₒ#�	�I26���W������'WGF�����F�c���F�cࠢ�F�b6�73�&��FFV�"�C�&F֖���V�#��F�b7G��S�&F�7���f�W��Ɩv�֗FV�3�6V�FW#��W7F�g��6��FV�C�76R�&WGvVV�f�{-wrap:wrap;gap:10px;margin-bottom:24px;">
+    <input type="password" id="admin-pass" placeholder="••••••••"
+           onkeydown="if(event.key==='Enter') doAdminLogin()" />
+    <div class="error-msg" id="login-error">Mot de passe incorrect.</div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="doAdminLogin()">🔓 Connexion</button>
+    </div>
+  </div>
+
+  <div class="hidden" id="admin-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
       <div>
         <div class="section-title">Tableau de bord</div>
         <div class="section-sub" style="margin-bottom:0;">Gérez les séances et les inscriptions.</div>
@@ -199,15 +208,15 @@
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
-        <div style="font-size:0.85rem;color:var(--muted);">Séances planifiees</div>
+        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
+        <div style="font-size:0.85rem;color:var(--muted);">Séances planifiées</div>
       </div>
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-participants">0</div>
+        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-participants">0</div>
         <div style="font-size:0.85rem;color:var(--muted);">Participants inscrits</div>
       </div>
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-total">0</div>
+        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-total">0</div>
         <div style="font-size:0.85rem;color:var(--muted);">Total présences</div>
       </div>
     </div>
@@ -233,11 +242,11 @@
 
     <!-- Dates list -->
     <div class="card">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiees</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiées</div>
       <div class="dates-list" id="admin-dates-list"></div>
       <div id="no-admin-dates" class="empty hidden">
         <div class="emoji">📅</div>
-        <div>Aucune séance planifiee pour l'instant.</div>
+        <div>Aucune séance planifiée pour l'instant.</div>
       </div>
     </div>
 
@@ -253,7 +262,7 @@
 
     <!-- Danger zone -->
     <div class="card" style="border-color:#fca5a5;">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚘️ Zone de danger</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚠️ Zone de danger</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-danger btn-sm" onclick="clearAllSignups()">🗑 Supprimer toutes les inscriptions</button>
         <button class="btn btn-danger btn-sm" onclick="clearEverything()">🔥 Tout réinitialiser</button>
@@ -261,14 +270,15 @@
     </div>
   </div>
 </div>
+
 <script>
-// ── State ────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────
 let data = { dates: [], signups: [] };
 let adminPassword = null;
 
 // ── Date helpers ──────────────────────────────────────────────
 const FR_DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','ao��','septembre','octobre','novembre','décembre'];
+const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
 function formatDate(isoString) {
   const d = new Date(isoString);
@@ -283,7 +293,7 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── API calls ───────────────────────────────────────────────
+// ── API calls ─────────────────────────────────────────────────
 async function api(method, path, body) {
   const res = await fetch(path, {
     method,
@@ -302,7 +312,7 @@ async function loadAll() {
   data = { dates, signups };
 }
 
-// ── Views ────────────────────────────────────────────────────
+// ── Views ─────────────────────────────────────────────────────
 function showView(v) {
   document.getElementById('view-participant').classList.toggle('hidden', v !== 'participant');
   document.getElementById('view-admin').classList.toggle('hidden', v !== 'admin');
@@ -312,7 +322,7 @@ function showView(v) {
   if (v === 'admin') renderAdminView();
 }
 
-// ── Participant view ──────────────────────────────────────────
+// ── Participant view ───────────────────────────────────────────
 function renderParticipantView() {
   renderDateChips();
   renderSignupGrid();
@@ -502,8 +512,8 @@ function renderAdminGrid(sorted) {
   wrapper.innerHTML = html;
 }
 
-// ── Calendar date picker ──────────────────────────────────────
-Yet calYear = new Date().getFullYear();
+// ── Calendar date picker ───────────────────────────────────────
+let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let calSelected = new Set();
 const CAL_MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -516,7 +526,7 @@ function renderCal() {
   label.textContent = CAL_MONTHS[calMonth] + ' ' + calYear;
   const last = new Date(calYear, calMonth + 1, 0).getDate();
   let startDay = new Date(calYear, calMonth, 1).getDay();
-  startDay = startDay === 0 ? 6 : startDay - 1;
+  startDay = startDay === 0 ? 6 : startDay - 1; // Mon=0
   const p = n => String(n).padStart(2,'0');
   let html = '';
   for (let i = 0; i < startDay; i++) html += '<div class="cal-day empty"></div>';
