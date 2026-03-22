@@ -10,7 +10,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# ── Database ──────────────────────────────────────────────
+# ── Database ────────────────────────────────────────────────
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///spinning.db')
 # Railway supplies postgres:// but SQLAlchemy requires postgresql://
 if DATABASE_URL.startswith('postgres://'):
@@ -92,17 +92,6 @@ def get_signups():
         result.append({'id': s.id, 'name': s.name, 'dates': date_ids})
     return jsonify(result)
 
-@app.route('/api/signups/lookup', methods=['GET'])
-def lookup_signup():
-    name = (request.args.get('name') or '').strip()
-    if not name:
-        return jsonify({'error': 'Nom requis'}), 400
-    existing = Signup.query.filter(db.func.lower(Signup.name) == name.lower()).first()
-    if not existing:
-        return jsonify({'found': False})
-    date_ids = [sd.date_id for sd in SignupDate.query.filter_by(signup_id=existing.id).all()]
-    return jsonify({'found': True, 'id': existing.id, 'name': existing.name, 'dates': date_ids})
-
 @app.route('/api/signups', methods=['POST'])
 def add_signup():
     data = request.get_json()
@@ -110,17 +99,10 @@ def add_signup():
     selected = data.get('dates') or []
     if not name:
         return jsonify({'error': 'Nom requis'}), 400
+    if not selected:
+        return jsonify({'error': 'Aucune séance sélectionnée'}), 400
 
     existing = Signup.query.filter(db.func.lower(Signup.name) == name.lower()).first()
-
-    # 0 dates = cancel inscription
-    if not selected:
-        if existing:
-            SignupDate.query.filter_by(signup_id=existing.id).delete()
-            Signup.query.filter_by(id=existing.id).delete()
-            db.session.commit()
-            return jsonify({'cancelled': True, 'name': name})
-        return jsonify({'error': 'Aucune inscription trouvée pour ce nom'}), 404
 
     # Create or update
     if existing:
@@ -135,6 +117,17 @@ def add_signup():
 
     db.session.commit()
     return jsonify({'id': signup_id, 'name': name, 'dates': selected}), 201
+
+@app.route('/api/signups/<signup_id>/dates/<date_id>', methods=['DELETE'])
+def remove_signup_date(signup_id, date_id):
+    """Remove a participant from one specific date. Public (no password needed)."""
+    SignupDate.query.filter_by(signup_id=signup_id, date_id=date_id).delete()
+    db.session.commit()
+    # If no dates remain, remove the signup record too
+    if SignupDate.query.filter_by(signup_id=signup_id).count() == 0:
+        Signup.query.filter_by(id=signup_id).delete()
+        db.session.commit()
+    return jsonify({'ok': True})
 
 @app.route('/api/signups/<signup_id>', methods=['DELETE'])
 def delete_signup(signup_id):
