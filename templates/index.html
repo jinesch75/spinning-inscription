@@ -20,7 +20,7 @@
       --radius:    12px;
     }
 
-    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: 'Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     header { background: linear-gradient(135deg, #1a1f2e 0%, #2d3748 100%); color: #fff; padding: 0 24px; }
     .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 70px; }
@@ -71,11 +71,28 @@
     .signup-form-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
     .dates-checkboxes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
     .date-chip { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #f3f4f6; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; user-select: none; font-size: 0.88rem; }
-    .date-chip.selected { background: #fff7ed; border-color: var(--primary); color: var(--primary-d); font-weight: 600; }
+    .date-chip.selected { background: #dcfce7; border-color: #22c55e; color: #15803d; font-weight: 600; }
     .date-chip .chip-icon { font-size: 1rem; }
 
     .add-date-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
     .add-date-row > .field { flex: 1; min-width: 200px; }
+
+    #signup-grid-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    #signup-grid-wrapper table { border: none; }
+
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-nav button { background: #e5e7eb; border: none; border-radius: 6px; padding: 5px 14px; cursor: pointer; font-size: 1.1rem; line-height: 1; }
+    .cal-nav button:hover { background: #d1d5db; }
+    .cal-nav span { font-weight: 700; font-size: 1rem; }
+    .cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 3px; }
+    .cal-days-header span { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--muted); padding: 4px 0; }
+    .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .cal-day { text-align: center; padding: 7px 4px; border-radius: 6px; font-size: 0.88rem; user-select: none; }
+    .cal-day-disabled { color: #d1d5db; }
+    .cal-day-selectable { cursor: pointer; background: #f0fdf4; color: #15803d; font-weight: 600; border: 1px solid #bbf7d0; }
+    .cal-day-selectable:hover { background: #dcfce7; }
+    .cal-day-selected { background: #22c55e !important; color: #fff !important; border-color: #16a34a !important; }
+    .cal-day.empty { }
 
     .dates-list { display: flex; flex-direction: column; gap: 8px; }
     .date-item { display: flex; align-items: center; justify-content: space-between; background: #f9fafb; border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 0.9rem; }
@@ -168,16 +185,7 @@
     <h2 class="section-title">Accès administration</h2>
     <div class="section-sub">Réservé à Julie 🔒</div>
     <label for="admin-pass">Mot de passe</label>
-    <input type="password" id="admin-pass" placeholder="••••••••"
-           onkeydown="if(event.key==='Enter') doAdminLogin()" />
-    <div class="error-msg" id="login-error">Mot de passe incorrect.</div>
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" onclick="doAdminLogin()">🔓 Connexion</button>
-    </div>
-  </div>
-
-  <div class="hidden" id="admin-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
+    <input type="password" id="admin-pass" placeholder="••••••••"��W�F�v��&�b�WfV�B�W����tV�FW"r�F�F֖���v�ₒ"���F�b6�73�&W'&�"��6r"�C�&��v���W'&�"#���BFR76R��6�'&V7B���F�c��F�b7G��S�&�&v���F��g��#��'WGF��6�73�&'F�'F��&��'�"��6Ɩ6��&F�F֖���v�ₒ#�	�I26���W������'WGF�����F�c���F�cࠢ�F�b6�73�&��FFV�"�C�&F֖���V�#��F�b7G��S�&F�7���f�W��Ɩv�֗FV�3�6V�FW#��W7F�g��6��FV�C�76R�&WGvVV�f�{-wrap:wrap;gap:10px;margin-bottom:24px;">
       <div>
         <div class="section-title">Tableau de bord</div>
         <div class="section-sub" style="margin-bottom:0;">Gérez les séances et les inscriptions.</div>
@@ -191,53 +199,45 @@
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
-        <div style="font-size:0.85rem;color:var(--muted);">Séances planifiées</div>
+        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
+        <div style="font-size:0.85rem;color:var(--muted);">Séances planifiees</div>
       </div>
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-participants">0</div>
+        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-participants">0</div>
         <div style="font-size:0.85rem;color:var(--muted);">Participants inscrits</div>
       </div>
       <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-total">0</div>
+        <div style="font-size:2zem;font-weight:800;color:var(--primary);" id="stat-total">0</div>
         <div style="font-size:0.85rem;color:var(--muted);">Total présences</div>
       </div>
     </div>
 
     <!-- Add date -->
     <div class="card">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter une séance</div>
-      <div style="margin-bottom:18px;">
-        <div style="font-size:0.82rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Créneaux habituels</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-secondary btn-sm" onclick="prefillDate(0,10,0)">🚴 Prochain dimanche – 10h00</button>
-          <button class="btn btn-secondary btn-sm" onclick="prefillDate(3,19,0)">🚴 Prochain mercredi – 19h00</button>
-        </div>
-        <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">Ces boutons pré-remplissent le formulaire ci-dessous. Ajustez si nécessaire avant d'ajouter.</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter des séances</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Cliquez sur les <strong>mercredis</strong> (19h–20h) et <strong>dimanches</strong> (10h–11h) pour sélectionner des séances.</div>
+      <div class="cal-nav">
+        <button onclick="calPrev()">&#8249;</button>
+        <span id="cal-month-label"></span>
+        <button onclick="calNext()">&#8250;</button>
       </div>
-      <div class="add-date-row">
-        <div class="field">
-          <label for="new-date-input">Date et heure</label>
-          <input type="datetime-local" id="new-date-input" />
-        </div>
-        <div class="field">
-          <label for="new-date-label">Nom / description (optionnel)</label>
-          <input type="text" id="new-date-label" placeholder="Ex : Cours débutants" />
-        </div>
-        <div>
-          <button class="btn btn-primary" id="add-date-btn" onclick="addDate()">Ajouter</button>
-        </div>
+      <div class="cal-days-header">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
       </div>
-      <div class="error-msg" id="date-error">Veuillez choisir une date.</div>
+      <div class="cal-days" id="cal-grid"></div>
+      <div id="cal-selected-summary" style="margin-top:12px;font-size:0.83rem;color:var(--muted);min-height:1.4em;"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" id="add-dates-btn" onclick="addSelectedDates()">Ajouter les séances sélectionnées</button>
+      </div>
     </div>
 
     <!-- Dates list -->
     <div class="card">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiées</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiees</div>
       <div class="dates-list" id="admin-dates-list"></div>
       <div id="no-admin-dates" class="empty hidden">
         <div class="emoji">📅</div>
-        <div>Aucune séance planifiée pour l'instant.</div>
+        <div>Aucune séance planifiee pour l'instant.</div>
       </div>
     </div>
 
@@ -253,7 +253,7 @@
 
     <!-- Danger zone -->
     <div class="card" style="border-color:#fca5a5;">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚠️ Zone de danger</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚘️ Zone de danger</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-danger btn-sm" onclick="clearAllSignups()">🗑 Supprimer toutes les inscriptions</button>
         <button class="btn btn-danger btn-sm" onclick="clearEverything()">🔥 Tout réinitialiser</button>
@@ -261,15 +261,14 @@
     </div>
   </div>
 </div>
-
 <script>
-// ── State ─────────────────────────────────────────────────────
+// ── State ────────────────────────────────────────────────
 let data = { dates: [], signups: [] };
 let adminPassword = null;
 
 // ── Date helpers ──────────────────────────────────────────────
 const FR_DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','ao��','septembre','octobre','novembre','décembre'];
 
 function formatDate(isoString) {
   const d = new Date(isoString);
@@ -279,26 +278,12 @@ function formatDateShort(isoString) {
   const d = new Date(isoString);
   return `${FR_DAYS[d.getDay()].slice(0,3)}. ${d.getDate()} ${FR_MONTHS[d.getMonth()].slice(0,3)}\n${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}`;
 }
-function nextOccurrence(dayOfWeek, hour, minute) {
-  const now = new Date();
-  const c = new Date(now);
-  c.setHours(hour, minute, 0, 0);
-  let d = (dayOfWeek - now.getDay() + 7) % 7;
-  if (d === 0 && now >= c) d = 7;
-  c.setDate(c.getDate() + d);
-  const p = n => String(n).padStart(2,'0');
-  return `${c.getFullYear()}-${p(c.getMonth()+1)}-${p(c.getDate())}T${p(hour)}:${p(minute)}`;
-}
-function prefillDate(dow, h, m) {
-  const el = document.getElementById('new-date-input');
-  el.value = nextOccurrence(dow, h, m);
-  el.focus();
-}
+
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── API calls ─────────────────────────────────────────────────
+// ── API calls ───────────────────────────────────────────────
 async function api(method, path, body) {
   const res = await fetch(path, {
     method,
@@ -317,7 +302,7 @@ async function loadAll() {
   data = { dates, signups };
 }
 
-// ── Views ─────────────────────────────────────────────────────
+// ── Views ────────────────────────────────────────────────────
 function showView(v) {
   document.getElementById('view-participant').classList.toggle('hidden', v !== 'participant');
   document.getElementById('view-admin').classList.toggle('hidden', v !== 'admin');
@@ -327,7 +312,7 @@ function showView(v) {
   if (v === 'admin') renderAdminView();
 }
 
-// ── Participant view ───────────────────────────────────────────
+// ── Participant view ──────────────────────────────────────────
 function renderParticipantView() {
   renderDateChips();
   renderSignupGrid();
@@ -392,6 +377,7 @@ async function submitSignup() {
     alert('Erreur : ' + e.message);
   } finally {
     btn.disabled = false;
+    btn.innerHTML = '<span>&#10004;</span> Valider mon inscription';
   }
 }
 
@@ -487,6 +473,7 @@ function renderAdminPanel() {
     }).join('');
   }
   renderAdminGrid(sorted);
+  renderCal();
 }
 
 function renderAdminGrid(sorted) {
@@ -515,18 +502,66 @@ function renderAdminGrid(sorted) {
   wrapper.innerHTML = html;
 }
 
-async function addDate() {
-  const dtEl  = document.getElementById('new-date-input');
-  const lblEl = document.getElementById('new-date-label');
-  const err   = document.getElementById('date-error');
-  if (!dtEl.value) { err.style.display = 'block'; dtEl.focus(); return; }
-  err.style.display = 'none';
-  const btn = document.getElementById('add-date-btn');
+// ── Calendar date picker ──────────────────────────────────────
+Yet calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelected = new Set();
+const CAL_MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function renderCal() {
+  const label = document.getElementById('cal-month-label');
+  const grid = document.getElementById('cal-grid');
+  const summary = document.getElementById('cal-selected-summary');
+  if (!label || !grid) return;
+  label.textContent = CAL_MONTHS[calMonth] + ' ' + calYear;
+  const last = new Date(calYear, calMonth + 1, 0).getDate();
+  let startDay = new Date(calYear, calMonth, 1).getDay();
+  startDay = startDay === 0 ? 6 : startDay - 1;
+  const p = n => String(n).padStart(2,'0');
+  let html = '';
+  for (let i = 0; i < startDay; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= last; d++) {
+    const dow = new Date(calYear, calMonth, d).getDay();
+    const selectable = dow === 0 || dow === 3;
+    const ds = `${calYear}-${p(calMonth+1)}-${p(d)}`;
+    const sel = calSelected.has(ds);
+    if (selectable) {
+      html += `<div class="cal-day cal-day-selectable${sel?' cal-day-selected':''}" onclick="calToggle('${ds}')">${d}</div>`;
+    } else {
+      html += `<div class="cal-day cal-day-disabled">${d}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+  if (calSelected.size > 0) {
+    const sorted = [...calSelected].sort();
+    summary.textContent = `${calSelected.size} séance(s) : ` + sorted.map(s => {
+      const dt = new Date(s + 'T12:00:00');
+      return `${FR_DAYS[dt.getDay()]} ${dt.getDate()} ${FR_MONTHS[dt.getMonth()]}`;
+    }).join(', ');
+  } else {
+    summary.textContent = '';
+  }
+}
+function calToggle(ds) { calSelected.has(ds) ? calSelected.delete(ds) : calSelected.add(ds); renderCal(); }
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCal(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCal(); }
+
+async function addSelectedDates() {
+  if (calSelected.size === 0) { alert('Sélectionnez au moins une date dans le calendrier.'); return; }
+  const btn = document.getElementById('add-dates-btn');
   btn.disabled = true;
+  const p = n => String(n).padStart(2,'0');
+  const dates = [...calSelected].sort();
   try {
-    await api('POST', '/api/dates', { password: adminPassword, datetime: dtEl.value, label: lblEl.value.trim() });
-    dtEl.value = ''; lblEl.value = '';
-    await loadAll(); renderAdminPanel();
+    for (const ds of dates) {
+      const dt = new Date(ds + 'T12:00:00');
+      const dow = dt.getDay();
+      const time = dow === 0 ? '10:00' : '19:00';
+      await api('POST', '/api/dates', { password: adminPassword, datetime: `${ds}T${time}`, label: '' });
+    }
+    calSelected.clear();
+    await loadAll();
+    renderAdminPanel();
   } catch(e) { alert('Erreur : ' + e.message); }
   finally { btn.disabled = false; }
 }
