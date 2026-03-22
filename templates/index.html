@@ -84,6 +84,10 @@
     .error-msg { color: #dc2626; font-size: 0.85rem; margin-top: 8px; display: none; }
 
     .success-banner { display: none; background: var(--yes-bg); border: 1px solid #86efac; border-radius: 8px; padding: 12px 18px; color: #15803d; font-weight: 600; font-size: 0.9rem; margin-bottom: 20px; }
+    .cancel-banner  { display: none; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 12px 18px; color: #c2410c; font-weight: 600; font-size: 0.9rem; margin-bottom: 20px; }
+    .info-banner    { display: none; background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px 18px; color: #1d4ed8; font-size: 0.9rem; margin-bottom: 6px; }
+    .name-row       { display: flex; gap: 10px; align-items: flex-end; }
+    .name-row input { flex: 1; }
 
     .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
     .empty .emoji { font-size: 2.5rem; margin-bottom: 10px; }
@@ -114,18 +118,31 @@
   </div>
 </header>
 
-<!-- ══ PARTICIPANT VIEW ══ -->
 <div class="container" id="view-participant">
   <div class="section-title">Inscrivez-vous aux cours 🚴‍♀️</div>
   <div class="section-sub">Entrez votre prénom et cochez les séances auxquelles vous souhaitez participer.</div>
 
   <div class="success-banner" id="signup-success">✅ Votre inscription a bien été enregistrée !</div>
+  <div class="cancel-banner"  id="signup-cancelled">❌ Votre inscription a bien été annulée.</div>
 
   <div class="card">
     <div class="signup-form-grid">
       <div class="field">
         <label for="participant-name">Votre prénom et nom *</label>
-        <input type="text" id="participant-name" placeholder="Ex : Marie Dupont" />
+        <div class="name-row">
+          <input type="text" id="participant-name" placeholder="Ex : Marie Dupont"
+                 onkeydown="if(event.key==='Enter') lookupSignup()" />
+          <button class="btn btn-secondary" id="lookup-btn" onclick="lookupSignup()" style="white-space:nowrap;">
+            🔍 Vérifier
+          </button>
+        </div>
+        <div class="info-banner" id="lookup-found">
+          ✏️ <strong>Inscription trouvée !</strong> Vos séances actuelles sont pré-cochées.
+          Modifiez-les et cliquez « Mettre à jour », ou décochez tout pour <strong>annuler votre inscription</strong>.
+        </div>
+        <div class="info-banner" id="lookup-not-found" style="color:#6b7280;background:#f9fafb;border-color:#e5e7eb;">
+          Aucune inscription trouvée pour ce nom. Cochez les séances ci-dessous pour vous inscrire.
+        </div>
       </div>
       <div class="field">
         <label>Séances disponibles – cochez celles qui vous conviennent</label>
@@ -135,9 +152,12 @@
           <div>Aucune séance n'a encore été planifiée.<br>Revenez bientôt !</div>
         </div>
       </div>
-      <div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn btn-primary" id="submit-btn" onclick="submitSignup()">
           <span>✔</span> Valider mon inscription
+        </button>
+        <button class="btn btn-danger hidden" id="cancel-all-btn" onclick="cancelInscription()">
+          ✕ Annuler mon inscription
         </button>
       </div>
     </div>
@@ -154,7 +174,6 @@
   </div>
 </div>
 
-<!-- ══ ADMIN VIEW ══ -->
 <div class="container hidden" id="view-admin">
 
   <div class="card" id="admin-login-card">
@@ -181,7 +200,6 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
       <div class="card" style="padding:18px;text-align:center;">
         <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
@@ -197,7 +215,6 @@
       </div>
     </div>
 
-    <!-- Add date -->
     <div class="card">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter une séance</div>
       <div style="margin-bottom:18px;">
@@ -224,7 +241,6 @@
       <div class="error-msg" id="date-error">Veuillez choisir une date.</div>
     </div>
 
-    <!-- Dates list -->
     <div class="card">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiées</div>
       <div class="dates-list" id="admin-dates-list"></div>
@@ -234,7 +250,6 @@
       </div>
     </div>
 
-    <!-- Sign-up grid -->
     <div class="card">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">👥 Tableau des inscriptions</div>
       <div class="grid-wrapper" id="admin-grid-wrapper"></div>
@@ -244,7 +259,6 @@
       </div>
     </div>
 
-    <!-- Danger zone -->
     <div class="card" style="border-color:#fca5a5;">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚠️ Zone de danger</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -256,21 +270,19 @@
 </div>
 
 <script>
-// ── State ─────────────────────────────────────────────────────
 let data = { dates: [], signups: [] };
 let adminPassword = null;
 
-// ── Date helpers ──────────────────────────────────────────────
 const FR_DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-const FR_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const FR_MONTHS = ['janvier','f\u00e9vrier','mars','avril','mai','juin','juillet','ao\u00fbt','septembre','octobre','novembre','d\u00e9cembre'];
 
 function formatDate(isoString) {
   const d = new Date(isoString);
-  return `${FR_DAYS[d.getDay()]} ${d.getDate()} ${FR_MONTHS[d.getMonth()]} ${d.getFullYear()} – ${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}`;
+  return FR_DAYS[d.getDay()]+' '+d.getDate()+' '+FR_MONTHS[d.getMonth()]+' '+d.getFullYear()+' \u2013 '+String(d.getHours()).padStart(2,'0')+('h')+String(d.getMinutes()).padStart(2,'0');
 }
 function formatDateShort(isoString) {
   const d = new Date(isoString);
-  return `${FR_DAYS[d.getDay()].slice(0,3)}. ${d.getDate()} ${FR_MONTHS[d.getMonth()].slice(0,3)}\n${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}`;
+  return FR_DAYS[d.getDay()].slice(0,3)+'. '+d.getDate()+' '+FR_MONTHS[d.getMonth()].slice(0,3)+'\n'+String(d.getHours()).padStart(2,'0')+('h')+String(d.getMinutes()).padStart(2,'0');
 }
 function nextOccurrence(dayOfWeek, hour, minute) {
   const now = new Date();
@@ -280,7 +292,7 @@ function nextOccurrence(dayOfWeek, hour, minute) {
   if (d === 0 && now >= c) d = 7;
   c.setDate(c.getDate() + d);
   const p = n => String(n).padStart(2,'0');
-  return `${c.getFullYear()}-${p(c.getMonth()+1)}-${p(c.getDate())}T${p(hour)}:${p(minute)}`;
+  return c.getFullYear()+'-'+p(c.getMonth()+1)+'-'+p(c.getDate())+'T'+p(hour)+':'+p(minute);
 }
 function prefillDate(dow, h, m) {
   const el = document.getElementById('new-date-input');
@@ -291,7 +303,6 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── API calls ─────────────────────────────────────────────────
 async function api(method, path, body) {
   const res = await fetch(path, {
     method,
@@ -310,7 +321,6 @@ async function loadAll() {
   data = { dates, signups };
 }
 
-// ── Views ─────────────────────────────────────────────────────
 function showView(v) {
   document.getElementById('view-participant').classList.toggle('hidden', v !== 'participant');
   document.getElementById('view-admin').classList.toggle('hidden', v !== 'admin');
@@ -320,7 +330,6 @@ function showView(v) {
   if (v === 'admin') renderAdminView();
 }
 
-// ── Participant view ───────────────────────────────────────────
 function renderParticipantView() {
   renderDateChips();
   renderSignupGrid();
@@ -332,11 +341,7 @@ function renderDateChips() {
   const sorted = [...data.dates].sort((a,b) => a.datetime.localeCompare(b.datetime));
   if (sorted.length === 0) { c.innerHTML = ''; msg.classList.remove('hidden'); return; }
   msg.classList.add('hidden');
-  c.innerHTML = sorted.map(d => `
-    <div class="date-chip" data-id="${d.id}" onclick="toggleChip(this)">
-      <span class="chip-icon">🗓</span>
-      <span>${formatDate(d.datetime)}${d.label ? `<br><span style="color:var(--muted);font-size:0.8rem;">${escHtml(d.label)}</span>` : ''}</span>
-    </div>`).join('');
+  c.innerHTML = sorted.map(d => '<div class="date-chip" data-id="'+d.id+'" onclick="toggleChip(this)"><span class="chip-icon">\ud83d\uddd3</span><span>'+formatDate(d.datetime)+(d.label ? '<br><span style="color:var(--muted);font-size:0.8rem;">'+escHtml(d.label)+'</span>' : '')+'</span></div>').join('');
 }
 
 function toggleChip(el) { el.classList.toggle('selected'); }
@@ -345,26 +350,84 @@ function getSelectedDateIds() {
   return [...document.querySelectorAll('#date-chips-container .date-chip.selected')].map(el => el.dataset.id);
 }
 
+let lookupMode = false;
+
+async function lookupSignup() {
+  const nameEl = document.getElementById('participant-name');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); nameEl.style.borderColor = '#dc2626'; return; }
+  nameEl.style.borderColor = '';
+  const btn = document.getElementById('lookup-btn');
+  btn.disabled = true; btn.textContent = '\u2026';
+  hideBanners();
+  try {
+    const res = await api('GET', '/api/signups/lookup?name='+encodeURIComponent(name));
+    if (res.found) {
+      document.querySelectorAll('#date-chips-container .date-chip').forEach(el => {
+        el.classList.toggle('selected', res.dates.includes(el.dataset.id));
+      });
+      document.getElementById('lookup-found').style.display = 'block';
+      document.getElementById('submit-btn').innerHTML = '<span>\u2714</span> Mettre \u00e0 jour';
+      document.getElementById('cancel-all-btn').classList.remove('hidden');
+      lookupMode = true;
+    } else {
+      document.getElementById('lookup-not-found').style.display = 'block';
+      lookupMode = false;
+    }
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '\ud83d\udd0d V\u00e9rifier';
+  }
+}
+
+async function cancelInscription() {
+  const name = document.getElementById('participant-name').value.trim();
+  if (!confirm('Annuler d\u00e9finitivement l\'inscription de "'+name+'" ?')) return;
+  const btn = document.getElementById('cancel-all-btn');
+  btn.disabled = true;
+  try {
+    await api('POST', '/api/signups', { name, dates: [] });
+    await loadAll();
+    resetForm();
+    const banner = document.getElementById('signup-cancelled');
+    banner.style.display = 'block';
+    setTimeout(() => banner.style.display = 'none', 5000);
+    renderSignupGrid();
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function hideBanners() {
+  ['lookup-found','lookup-not-found'].forEach(id => document.getElementById(id).style.display = 'none');
+}
+
+function resetForm() {
+  document.getElementById('participant-name').value = '';
+  document.querySelectorAll('#date-chips-container .date-chip').forEach(el => el.classList.remove('selected'));
+  document.getElementById('submit-btn').innerHTML = '<span>\u2714</span> Valider mon inscription';
+  document.getElementById('cancel-all-btn').classList.add('hidden');
+  hideBanners();
+  lookupMode = false;
+}
+
 async function submitSignup() {
   const nameEl = document.getElementById('participant-name');
   const name = nameEl.value.trim();
   if (!name) { nameEl.focus(); nameEl.style.borderColor = '#dc2626'; return; }
   nameEl.style.borderColor = '';
-
   const selected = getSelectedDateIds();
-  if (selected.length === 0) { alert('Veuillez cocher au moins une séance.'); return; }
-
-  const existing = data.signups.find(s => s.name.toLowerCase() === name.toLowerCase());
-  if (existing && !confirm(`"${name}" est déjà inscrit(e). Voulez-vous mettre à jour votre inscription ?`)) return;
-
+  if (selected.length === 0 && !lookupMode) { alert('Veuillez cocher au moins une s\u00e9ance.'); return; }
+  if (selected.length === 0 && lookupMode) { cancelInscription(); return; }
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true; btn.textContent = 'Enregistrement…';
-
+  btn.disabled = true; btn.textContent = 'Enregistrement\u2026';
   try {
     await api('POST', '/api/signups', { name, dates: selected });
     await loadAll();
-    nameEl.value = '';
-    document.querySelectorAll('#date-chips-container .date-chip').forEach(el => el.classList.remove('selected'));
+    resetForm();
     const banner = document.getElementById('signup-success');
     banner.style.display = 'block';
     setTimeout(() => banner.style.display = 'none', 4000);
@@ -372,43 +435,39 @@ async function submitSignup() {
   } catch(e) {
     alert('Erreur : ' + e.message);
   } finally {
-    btn.disabled = false; btn.innerHTML = '<span>✔</span> Valider mon inscription';
+    btn.disabled = false;
   }
 }
 
 function renderSignupGrid() {
   const wrapper = document.getElementById('signup-grid-wrapper');
   const sorted = [...data.dates].sort((a,b) => a.datetime.localeCompare(b.datetime));
-  document.getElementById('total-count-label').textContent =
-    `${data.signups.length} participant(s) · ${sorted.length} séance(s)`;
-
+  document.getElementById('total-count-label').textContent = data.signups.length+' participant(s) \u00b7 '+sorted.length+' s\u00e9ance(s)';
   if (data.signups.length === 0 || sorted.length === 0) {
-    wrapper.innerHTML = `<div class="empty"><div class="emoji">👥</div><div>Aucune inscription pour le moment.</div></div>`;
+    wrapper.innerHTML = '<div class="empty"><div class="emoji">\ud83d\udc65</div><div>Aucune inscription pour le moment.</div></div>';
     return;
   }
-
   let html = '<table><thead><tr><th>Participant</th>';
   sorted.forEach(d => {
     const p = formatDateShort(d.datetime).split('\n');
-    html += `<th>${p[0]}<br><span style="color:#f97316;font-size:0.9em;">${p[1]}</span>`;
-    if (d.label) html += `<br><span style="color:#9ca3af;font-size:0.78em;font-weight:400;">${escHtml(d.label)}</span>`;
+    html += '<th>'+p[0]+'<br><span style="color:#f97316;font-size:0.9em;">'+p[1]+'</span>';
+    if (d.label) html += '<br><span style="color:#9ca3af;font-size:0.78em;font-weight:400;">'+escHtml(d.label)+'</span>';
     html += '</th>';
   });
   html += '</tr></thead><tbody>';
   data.signups.forEach(s => {
-    html += `<tr><td>${escHtml(s.name)}</td>`;
+    html += '<tr><td>'+escHtml(s.name)+'</td>';
     sorted.forEach(d => {
-      html += `<td>${s.dates.includes(d.id) ? '<span class="check-yes">✓</span>' : '<span class="check-no">–</span>'}</td>`;
+      html += '<td>'+( s.dates.includes(d.id) ? '<span class="check-yes">\u2713</span>' : '<span class="check-no">\u2013</span>')+'</td>';
     });
     html += '</tr>';
   });
   html += '<tfoot><tr><td>Total inscrits</td>';
-  sorted.forEach(d => { html += `<td>${data.signups.filter(s => s.dates.includes(d.id)).length}</td>`; });
+  sorted.forEach(d => { html += '<td>'+data.signups.filter(s => s.dates.includes(d.id)).length+'</td>'; });
   html += '</tr></tfoot></table>';
   wrapper.innerHTML = html;
 }
 
-// ── Admin view ────────────────────────────────────────────────
 let adminLoggedIn = false;
 
 function renderAdminView() {
@@ -442,7 +501,6 @@ function renderAdminPanel() {
   document.getElementById('stat-sessions').textContent = sorted.length;
   document.getElementById('stat-participants').textContent = data.signups.length;
   document.getElementById('stat-total').textContent = totalPresences;
-
   const list = document.getElementById('admin-dates-list');
   const noMsg = document.getElementById('no-admin-dates');
   if (sorted.length === 0) {
@@ -451,14 +509,7 @@ function renderAdminPanel() {
     noMsg.classList.add('hidden');
     list.innerHTML = sorted.map(d => {
       const cnt = data.signups.filter(s => s.dates.includes(d.id)).length;
-      return `<div class="date-item">
-        <div>
-          <span class="date-label">📅 ${formatDate(d.datetime)}</span>
-          ${d.label ? `<span style="color:var(--muted);margin-left:8px;">${escHtml(d.label)}</span>` : ''}
-          <span class="date-count">${cnt} inscrit(s)</span>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteDate('${d.id}')">✕ Supprimer</button>
-      </div>`;
+      return '<div class="date-item"><div><span class="date-label">\ud83d\udcc5 '+formatDate(d.datetime)+'</span>'+(d.label ? '<span style="color:var(--muted);margin-left:8px;">'+escHtml(d.label)+'</span>' : '')+'<span class="date-count">'+cnt+' inscrit(s)</span></div><button class="btn btn-danger btn-sm" onclick="deleteDate(\''+ d.id +'\')">\u2715 Supprimer</button></div>';
     }).join('');
   }
   renderAdminGrid(sorted);
@@ -474,18 +525,18 @@ function renderAdminGrid(sorted) {
   let html = '<table><thead><tr><th>Participant</th>';
   sorted.forEach(d => {
     const p = formatDateShort(d.datetime).split('\n');
-    html += `<th>${p[0]}<br><span style="color:#f97316;font-size:0.9em;">${p[1]}</span></th>`;
+    html += '<th>'+p[0]+'<br><span style="color:#f97316;font-size:0.9em;">'+p[1]+'</span></th>';
   });
   html += '<th>Actions</th></tr></thead><tbody>';
   data.signups.forEach(s => {
-    html += `<tr><td>${escHtml(s.name)}</td>`;
+    html += '<tr><td>'+escHtml(s.name)+'</td>';
     sorted.forEach(d => {
-      html += `<td>${s.dates.includes(d.id) ? '<span class="check-yes">✓</span>' : '<span class="check-no">–</span>'}</td>`;
+      html += '<td>'+(s.dates.includes(d.id) ? '<span class="check-yes">\u2713</span>' : '<span class="check-no">\u2013</span>')+'</td>';
     });
-    html += `<td><button class="btn btn-danger btn-sm" onclick="deleteSignup('${s.id}')">✕</button></td></tr>`;
+    html += '<td><button class="btn btn-danger btn-sm" onclick="deleteSignup(\''+ s.id +'\')">\u2715</button></td></tr>';
   });
   html += '<tfoot><tr><td>Total</td>';
-  sorted.forEach(d => { html += `<td>${data.signups.filter(s => s.dates.includes(d.id)).length}</td>`; });
+  sorted.forEach(d => { html += '<td>'+data.signups.filter(s => s.dates.includes(d.id)).length+'</td>'; });
   html += '<td></td></tr></tfoot></table>';
   wrapper.innerHTML = html;
 }
@@ -511,43 +562,42 @@ async function deleteDate(id) {
   if (!d) return;
   const cnt = data.signups.filter(s => s.dates.includes(id)).length;
   const msg = cnt > 0
-    ? `Supprimer la séance du ${formatDate(d.datetime)} ? (${cnt} inscription(s) liées seront supprimées)`
-    : `Supprimer la séance du ${formatDate(d.datetime)} ?`;
+    ? 'Supprimer la s\u00e9ance du '+formatDate(d.datetime)+' ? ('+cnt+' inscription(s) li\u00e9es seront supprim\u00e9es)'
+    : 'Supprimer la s\u00e9ance du '+formatDate(d.datetime)+' ?';
   if (!confirm(msg)) return;
-  try { await api('DELETE', `/api/dates/${id}`, { password: adminPassword }); await loadAll(); renderAdminPanel(); }
+  try { await api('DELETE', '/api/dates/'+id, { password: adminPassword }); await loadAll(); renderAdminPanel(); }
   catch(e) { alert('Erreur : ' + e.message); }
 }
 
 async function deleteSignup(id) {
   if (!confirm('Supprimer cette inscription ?')) return;
-  try { await api('DELETE', `/api/signups/${id}`, { password: adminPassword }); await loadAll(); renderAdminPanel(); }
+  try { await api('DELETE', '/api/signups/'+id, { password: adminPassword }); await loadAll(); renderAdminPanel(); }
   catch(e) { alert('Erreur : ' + e.message); }
 }
 
 async function clearAllSignups() {
-  if (!confirm('Supprimer TOUTES les inscriptions ? (Les séances seront conservées)')) return;
+  if (!confirm('Supprimer TOUTES les inscriptions ? (Les s\u00e9ances seront conserv\u00e9es)')) return;
   try { await api('DELETE', '/api/signups/all', { password: adminPassword }); await loadAll(); renderAdminPanel(); }
   catch(e) { alert('Erreur : ' + e.message); }
 }
 
 async function clearEverything() {
-  if (!confirm('⚠️ Réinitialiser TOUT ? Cette action est irréversible.')) return;
+  if (!confirm('\u26a0\ufe0f R\u00e9initialiser TOUT ? Cette action est irr\u00e9versible.')) return;
   try { await api('POST', '/api/reset', { password: adminPassword }); await loadAll(); renderAdminPanel(); }
   catch(e) { alert('Erreur : ' + e.message); }
 }
 
 function exportCSV() {
   const sorted = [...data.dates].sort((a,b) => a.datetime.localeCompare(b.datetime));
-  if (!sorted.length || !data.signups.length) { alert('Rien à exporter.'); return; }
-  const header = ['Participant', ...sorted.map(d => formatDate(d.datetime) + (d.label ? ` (${d.label})` : ''))];
+  if (!sorted.length || !data.signups.length) { alert('Rien \u00e0 exporter.'); return; }
+  const header = ['Participant', ...sorted.map(d => formatDate(d.datetime) + (d.label ? ' ('+d.label+')' : ''))];
   const rows = data.signups.map(s => [s.name, ...sorted.map(d => s.dates.includes(d.id) ? 'Oui' : 'Non')]);
-  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const csv = [header, ...rows].map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
   a.download = 'inscriptions-spinning.csv'; a.click();
 }
 
-// ── Init ──────────────────────────────────────────────────────
 (async () => {
   await loadAll();
   renderParticipantView();
