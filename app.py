@@ -24,6 +24,9 @@ db = SQLAlchemy(app)
 # ── Admin password (set via Railway env var ADMIN_PASSWORD) ─────
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'spinning')
 
+# ── Class limit ─────────────────────────────────────────────────
+CLASS_LIMIT = 10
+
 # ── Models ──────────────────────────────────────────────────────
 class CourseDate(db.Model):
     __tablename__ = 'dates'
@@ -92,6 +95,22 @@ def get_signups():
         result.append({'id': s.id, 'name': s.name, 'dates': date_ids})
     return jsonify(result)
 
+@app.route('/api/signups/new', methods=['POST'])
+def create_signup_name():
+    """Add a participant by name only, with no dates yet."""
+    data = request.get_json()
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Nom requis'}), 400
+    existing = Signup.query.filter(db.func.lower(Signup.name) == name.lower()).first()
+    if existing:
+        date_ids = [sd.date_id for sd in SignupDate.query.filter_by(signup_id=existing.id).all()]
+        return jsonify({'id': existing.id, 'name': existing.name, 'dates': date_ids, 'already_exists': True}), 200
+    signup_id = uid()
+    db.session.add(Signup(id=signup_id, name=name))
+    db.session.commit()
+    return jsonify({'id': signup_id, 'name': name, 'dates': []}), 201
+
 @app.route('/api/signups/lookup', methods=['GET'])
 def lookup_signup():
     name = (request.args.get('name') or '').strip()
@@ -145,6 +164,9 @@ def add_signup_date(signup_id, date_id):
         return jsonify({'error': 'Séance non trouvée'}), 404
     existing = SignupDate.query.filter_by(signup_id=signup_id, date_id=date_id).first()
     if not existing:
+        current_count = SignupDate.query.filter_by(date_id=date_id).count()
+        if current_count >= CLASS_LIMIT:
+            return jsonify({'error': 'Séance complète (10 participants maximum)', 'full': True}), 400
         db.session.add(SignupDate(signup_id=signup_id, date_id=date_id))
         db.session.commit()
     return jsonify({'ok': True})
