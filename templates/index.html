@@ -65,6 +65,8 @@
     .check-removable { cursor: pointer; transition: background 0.15s, color 0.15s; }
     .check-removable:hover { background: #fecaca; color: #dc2626; }
     .check-no  { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f3f4f6; border-radius: 50%; color: #d1d5db; font-size: 0.9rem; }
+    .check-addable { cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .check-addable:hover { background: #dcfce7; color: #15803d; }
     tfoot td { background: #f9fafb; padding: 10px 16px; font-size: 0.82rem; font-weight: 700; text-align: center; color: var(--primary); border-top: 2px solid var(--border); }
     tfoot td:first-child { text-align: left; color: var(--muted); }
 
@@ -92,6 +94,7 @@
     .cal-day-selectable { cursor: pointer; background: #f0fdf4; color: #15803d; font-weight: 600; border: 1px solid #bbf7d0; }
     .cal-day-selectable:hover { background: #dcfce7; }
     .cal-day-selected { background: #22c55e !important; color: #fff !important; border-color: #16a34a !important; }
+    .cal-day-scheduled { background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; font-weight: 600; cursor: default; }
     .cal-day.empty { }
 
     .dates-list { display: flex; flex-direction: column; gap: 8px; }
@@ -140,7 +143,7 @@
 <!-- ══ PARTICIPANT VIEW ══ -->
 <div class="container" id="view-participant">
   <div class="section-title">Inscrivez-vous aux cours 🚴‍♀️</div>
-  <div class="section-sub">Entrez votre prénom, cochez les séances souhaitées et validez. Pour vous désinscrire d'une séance, cliquez sur la ✓ verte dans le tableau ci-dessous.</div>
+  <div class="section-sub">Entrez votre prénom, cochez les séances souhaitées et validez. Dans le tableau ci-dessous, cliquez sur la <strong>✓ verte</strong> pour vous désinscrire d'une séance, ou sur le <strong>– gris</strong> pour vous y inscrire.</div>
 
   <div class="success-banner" id="signup-success">✅ Votre inscription a bien été enregistrée !</div>
 
@@ -224,7 +227,7 @@
     <!-- Add date -->
     <div class="card">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter des séances</div>
-      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Cliquez sur les <strong>mercredis</strong> (19h–20h) et <strong>dimanches</strong> (10h–11h) pour sélectionner des séances.</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Cliquez sur les <strong>mercredis</strong> (19h–20h) et <strong>dimanches</strong> (10h–11h) pour sélectionner des séances. <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:1px 6px;font-size:0.8rem;">vert</span> = à ajouter &nbsp;<span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;border-radius:4px;padding:1px 6px;font-size:0.8rem;">orange</span> = déjà planifiée</span></div>
       <div class="cal-nav">
         <button onclick="calPrev()">&#8249;</button>
         <span id="cal-month-label"></span>
@@ -262,7 +265,7 @@
 
     <!-- Danger zone -->
     <div class="card" style="border-color:#fca5a5;">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚠️ Zone de danger</div>
+      <div style="font-size:1.05rem;font-weight:700;margin-bottom:12px;color:#dc2626;">⚠️ Zone de danger</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-danger btn-sm" onclick="clearAllSignups()">🗑 Supprimer toutes les inscriptions</button>
         <button class="btn btn-danger btn-sm" onclick="clearEverything()">🔥 Tout réinitialiser</button>
@@ -363,6 +366,17 @@ async function removeSignupDate(signupId, dateId, name, dateLabel) {
   }
 }
 
+async function addSignupDate(signupId, dateId, name, dateLabel) {
+  if (!confirm(`Inscrire ${name} à la séance du ${dateLabel} ?`)) return;
+  try {
+    await api('POST', `/api/signups/${signupId}/dates/${dateId}`);
+    await loadAll();
+    renderParticipantView();
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
 async function submitSignup() {
   const nameEl = document.getElementById('participant-name');
   const name = nameEl.value.trim();
@@ -418,7 +432,9 @@ function renderSignupGrid() {
         const nm = escHtml(s.name).replace(/'/g,"\\'");
         html += `<td><span class="check-yes check-removable" onclick="removeSignupDate('${s.id}','${d.id}','${nm}','${dl}')" title="Cliquer pour désinscrire">✓</span></td>`;
       } else {
-        html += `<td><span class="check-no">–</span></td>`;
+        const dl2 = formatDate(d.datetime).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        const nm2 = escHtml(s.name).replace(/'/g,"\\'");
+        html += `<td><span class="check-no check-addable" onclick="addSignupDate('${s.id}','${d.id}','${nm2}','${dl2}')" title="Cliquer pour inscrire">–</span></td>`;
       }
     });
     html += '</tr>';
@@ -528,6 +544,7 @@ function renderCal() {
   let startDay = new Date(calYear, calMonth, 1).getDay();
   startDay = startDay === 0 ? 6 : startDay - 1; // Mon=0
   const p = n => String(n).padStart(2,'0');
+  const scheduledDates = new Set(data.dates.map(d => d.datetime.slice(0, 10)));
   let html = '';
   for (let i = 0; i < startDay; i++) html += '<div class="cal-day empty"></div>';
   for (let d = 1; d <= last; d++) {
@@ -535,8 +552,13 @@ function renderCal() {
     const selectable = dow === 0 || dow === 3;
     const ds = `${calYear}-${p(calMonth+1)}-${p(d)}`;
     const sel = calSelected.has(ds);
+    const already = scheduledDates.has(ds);
     if (selectable) {
-      html += `<div class="cal-day cal-day-selectable${sel?' cal-day-selected':''}" onclick="calToggle('${ds}')">${d}</div>`;
+      if (already) {
+        html += `<div class="cal-day cal-day-scheduled" title="Séance déjà planifiée">${d}</div>`;
+      } else {
+        html += `<div class="cal-day cal-day-selectable${sel?' cal-day-selected':''}" onclick="calToggle('${ds}')">${d}</div>`;
+      }
     } else {
       html += `<div class="cal-day cal-day-disabled">${d}</div>`;
     }
