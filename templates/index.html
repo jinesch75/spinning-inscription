@@ -67,6 +67,8 @@
     .check-no  { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f3f4f6; border-radius: 50%; color: #d1d5db; font-size: 0.9rem; }
     .check-addable { cursor: pointer; transition: background 0.15s, color 0.15s; }
     .check-addable:hover { background: #dcfce7; color: #15803d; }
+    .check-full { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #fee2e2; border-radius: 50%; color: #dc2626; font-size: 0.75rem; cursor: default; }
+    .col-full { background: #fff5f5 !important; }
     tfoot td { background: #f9fafb; padding: 10px 16px; font-size: 0.82rem; font-weight: 700; text-align: center; color: var(--primary); border-top: 2px solid var(--border); }
     tfoot td:first-child { text-align: left; color: var(--muted); }
 
@@ -142,32 +144,22 @@
 
 <!-- ══ PARTICIPANT VIEW ══ -->
 <div class="container" id="view-participant">
-  <div class="section-title">Inscrivez-vous aux cours 🚴‍♀️</div>
-  <div class="section-sub">Entrez votre prénom, cochez les séances souhaitées et validez. Dans le tableau ci-dessous, cliquez sur la <strong>✓ verte</strong> pour vous désinscrire d'une séance, ou sur le <strong>– gris</strong> pour vous y inscrire.</div>
-
-  <div class="success-banner" id="signup-success">✅ Votre inscription a bien été enregistrée !</div>
+  <div class="section-title">Inscriptions Spinning 🚴‍♀️</div>
+  <div class="section-sub">Ajoutez votre nom au tableau, puis cliquez sur le <strong>– gris</strong> pour vous inscrire à une séance, ou sur la <strong>✓ verte</strong> pour vous désinscrire.</div>
 
   <div class="card">
-    <div class="signup-form-grid">
-      <div class="field">
-        <label for="participant-name">Votre prénom et nom *</label>
+    <div style="font-size:1.05rem;font-weight:700;margin-bottom:14px;">➕ Rajoutez votre nom au tableau</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <label for="participant-name">Votre prénom et nom</label>
         <input type="text" id="participant-name" placeholder="Ex : Marie Dupont"
-               onkeydown="if(event.key==='Enter') submitSignup()" />
+               onkeydown="if(event.key==='Enter') addNameToTable()" />
       </div>
-      <div class="field">
-        <label>Séances disponibles – cochez celles qui vous conviennent</label>
-        <div class="dates-checkboxes" id="date-chips-container"></div>
-        <div id="no-dates-msg" class="empty hidden">
-          <div class="emoji">📅</div>
-          <div>Aucune séance n'a encore été planifiée.<br>Revenez bientôt !</div>
-        </div>
-      </div>
-      <div>
-        <button class="btn btn-primary" id="submit-btn" onclick="submitSignup()">
-          <span>✔</span> Valider mon inscription
-        </button>
-      </div>
+      <button class="btn btn-primary" id="add-name-btn" onclick="addNameToTable()">
+        ➕ Ajouter
+      </button>
     </div>
+    <div id="add-name-banner" class="success-banner" style="margin-top:14px;margin-bottom:0;"></div>
   </div>
 
   <div class="card">
@@ -350,35 +342,40 @@ function showView(v) {
 
 // ── Participant view ───────────────────────────────────────────
 function renderParticipantView() {
-  renderDateChips();
   renderSignupGrid();
 }
 
-function renderDateChips() {
-  const c = document.getElementById('date-chips-container');
-  const msg = document.getElementById('no-dates-msg');
-  const sorted = [...data.dates].sort((a,b) => a.datetime.localeCompare(b.datetime));
-  if (sorted.length === 0) { c.innerHTML = ''; msg.classList.remove('hidden'); return; }
-  msg.classList.add('hidden');
-  c.innerHTML = sorted.map(d => `
-    <div class="date-chip" data-id="${d.id}" onclick="toggleChip(this)">
-      <span class="chip-icon">🗓</span>
-      <span>${formatDate(d.datetime)}${d.label ? `<br><span style="color:var(--muted);font-size:0.8rem;">${escHtml(d.label)}</span>` : ''}</span>
-    </div>`).join('');
+async function addNameToTable() {
+  const nameEl = document.getElementById('participant-name');
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); nameEl.style.borderColor = '#dc2626'; return; }
+  nameEl.style.borderColor = '';
+
+  const btn = document.getElementById('add-name-btn');
+  btn.disabled = true;
+
+  try {
+    const result = await api('POST', '/api/signups/new', { name });
+    await loadAll();
+    nameEl.value = '';
+    const banner = document.getElementById('add-name-banner');
+    if (result.already_exists) {
+      banner.style.cssText = 'display:block;background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;margin-top:14px;margin-bottom:0;';
+      banner.textContent = `ℹ️ ${result.name} est déjà dans le tableau !`;
+    } else {
+      banner.style.cssText = 'display:block;margin-top:14px;margin-bottom:0;';
+      banner.textContent = `✅ ${result.name} a bien été ajouté(e) au tableau !`;
+    }
+    setTimeout(() => { banner.style.display = 'none'; }, 4000);
+    renderSignupGrid();
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
-function toggleChip(el) { el.classList.toggle('selected'); }
-
-function getSelectedDateIds() {
-  return [...document.querySelectorAll('#date-chips-container .date-chip.selected')].map(el => el.dataset.id);
-}
-
-function resetForm() {
-  document.getElementById('participant-name').value = '';
-  document.querySelectorAll('#date-chips-container .date-chip').forEach(el => el.classList.remove('selected'));
-}
-
-async function removeSignupDate(signupId, dateId, name, dateLabel) {
+async function removeSignupDate(signupId, dateId) {
   try {
     await api('DELETE', `/api/signups/${signupId}/dates/${dateId}`);
     await loadAll();
@@ -388,41 +385,22 @@ async function removeSignupDate(signupId, dateId, name, dateLabel) {
   }
 }
 
-async function addSignupDate(signupId, dateId, name, dateLabel) {
+async function addSignupDate(el, signupId, dateId) {
+  // Optimistic update – turn green immediately, no red flash
+  el.className = 'check-yes';
+  el.textContent = '✓';
+  el.onclick = null;
   try {
     await api('POST', `/api/signups/${signupId}/dates/${dateId}`);
     await loadAll();
     renderParticipantView();
   } catch(e) {
-    alert('Erreur : ' + e.message);
-  }
-}
-
-async function submitSignup() {
-  const nameEl = document.getElementById('participant-name');
-  const name = nameEl.value.trim();
-  if (!name) { nameEl.focus(); nameEl.style.borderColor = '#dc2626'; return; }
-  nameEl.style.borderColor = '';
-
-  const selected = getSelectedDateIds();
-  if (selected.length === 0) { alert('Veuillez cocher au moins une séance.'); return; }
-
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true; btn.textContent = 'Enregistrement…';
-
-  try {
-    await api('POST', '/api/signups', { name, dates: selected });
+    // Revert or re-render on error (e.g. class full)
     await loadAll();
-    resetForm();
-    const banner = document.getElementById('signup-success');
-    banner.style.display = 'block';
-    setTimeout(() => banner.style.display = 'none', 4000);
-    renderSignupGrid();
-  } catch(e) {
-    alert('Erreur : ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<span>&#10004;</span> Valider mon inscription';
+    renderParticipantView();
+    if (!e.message.includes('complète')) {
+      alert('Erreur : ' + e.message);
+    }
   }
 }
 
@@ -437,31 +415,48 @@ function renderSignupGrid() {
     return;
   }
 
+  // Count participants per date
+  const counts = {};
+  data.signups.forEach(s => s.dates.forEach(did => { counts[did] = (counts[did] || 0) + 1; }));
+
   let html = '<table><thead><tr><th>Participant</th>';
   sorted.forEach(d => {
     const p = formatDateShort(d.datetime).split('\n');
-    html += `<th>${p[0]}<br><span style="color:#f97316;font-size:0.9em;">${p[1]}</span>`;
+    const cnt = counts[d.id] || 0;
+    const full = cnt >= 10;
+    html += `<th${full ? ' class="col-full"' : ''}>${p[0]}<br><span style="color:#f97316;font-size:0.9em;">${p[1]}</span>`;
     if (d.label) html += `<br><span style="color:#9ca3af;font-size:0.78em;font-weight:400;">${escHtml(d.label)}</span>`;
+    if (full) {
+      html += `<br><span style="background:#fee2e2;color:#dc2626;font-size:0.7em;padding:1px 6px;border-radius:4px;font-weight:700;letter-spacing:0.03em;">COMPLET</span>`;
+    } else {
+      html += `<br><span style="color:#9ca3af;font-size:0.75em;font-weight:400;">${cnt}/10</span>`;
+    }
     html += '</th>';
   });
   html += '</tr></thead><tbody>';
+
   data.signups.forEach(s => {
     html += `<tr><td>${escHtml(s.name)}</td>`;
     sorted.forEach(d => {
+      const cnt = counts[d.id] || 0;
+      const full = cnt >= 10;
       if (s.dates.includes(d.id)) {
-        const dl = formatDate(d.datetime).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        const nm = escHtml(s.name).replace(/'/g,"\\'");
-        html += `<td><span class="check-yes check-removable" onclick="removeSignupDate('${s.id}','${d.id}','${nm}','${dl}')" title="Cliquer pour désinscrire">✓</span></td>`;
+        html += `<td><span class="check-yes check-removable" onclick="removeSignupDate('${s.id}','${d.id}')" title="Cliquer pour désinscrire">✓</span></td>`;
+      } else if (full) {
+        html += `<td class="col-full"><span class="check-full" title="Séance complète">🔒</span></td>`;
       } else {
-        const dl2 = formatDate(d.datetime).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        const nm2 = escHtml(s.name).replace(/'/g,"\\'");
-        html += `<td><span class="check-no check-addable" onclick="addSignupDate('${s.id}','${d.id}','${nm2}','${dl2}')" title="Cliquer pour inscrire">–</span></td>`;
+        html += `<td><span class="check-no check-addable" onclick="addSignupDate(this,'${s.id}','${d.id}')" title="Cliquer pour s'inscrire">–</span></td>`;
       }
     });
     html += '</tr>';
   });
+
   html += '<tfoot><tr><td>Total inscrits</td>';
-  sorted.forEach(d => { html += `<td>${data.signups.filter(s => s.dates.includes(d.id)).length}</td>`; });
+  sorted.forEach(d => {
+    const cnt = counts[d.id] || 0;
+    const full = cnt >= 10;
+    html += `<td${full ? ' class="col-full"' : ''}><span${full ? ' style="color:#dc2626;font-weight:800;"' : ''}>${cnt}${full ? ' 🔒' : '/10'}</span></td>`;
+  });
   html += '</tr></tfoot></table>';
   wrapper.innerHTML = html;
 }
