@@ -315,7 +315,7 @@ async function loadAll() {
   data = { dates, signups };
 }
 
-// ── Views ─────────────────────────────────────────────────────
+// ── Views ──────────────────────────────────────────────────────
 function showView(v) {
   document.getElementById('view-participant').classList.toggle('hidden', v !== 'participant');
   document.getElementById('view-admin').classList.toggle('hidden', v !== 'admin');
@@ -356,7 +356,6 @@ function resetForm() {
 }
 
 async function removeSignupDate(signupId, dateId, name, dateLabel) {
-  if (!confirm(`Désinscrire ${name} de la séance du ${dateLabel} ?`)) return;
   try {
     await api('DELETE', `/api/signups/${signupId}/dates/${dateId}`);
     await loadAll();
@@ -367,7 +366,6 @@ async function removeSignupDate(signupId, dateId, name, dateLabel) {
 }
 
 async function addSignupDate(signupId, dateId, name, dateLabel) {
-  if (!confirm(`Inscrire ${name} à la séance du ${dateLabel} ?`)) return;
   try {
     await api('POST', `/api/signups/${signupId}/dates/${dateId}`);
     await loadAll();
