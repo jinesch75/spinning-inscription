@@ -10,7 +10,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# ── Database ────────────────────────────────────────────────
+# ── Database ────────────────────────────────────────────────────
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///spinning.db')
 # Railway supplies postgres:// but SQLAlchemy requires postgresql://
 if DATABASE_URL.startswith('postgres://'):
@@ -24,7 +24,7 @@ db = SQLAlchemy(app)
 # ── Admin password (set via Railway env var ADMIN_PASSWORD) ─────
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'spinning')
 
-# ── Models ──────────────────────────────────────────────
+# ── Models ──────────────────────────────────────────────────────
 class CourseDate(db.Model):
     __tablename__ = 'dates'
     id          = db.Column(db.String(32), primary_key=True)
@@ -42,7 +42,7 @@ class SignupDate(db.Model):
     signup_id = db.Column(db.String(32), db.ForeignKey('signups.id'), primary_key=True)
     date_id   = db.Column(db.String(32), db.ForeignKey('dates.id'),   primary_key=True)
 
-# ── Helper ──────────────────────────────────────────────
+# ── Helper ──────────────────────────────────────────────────────
 def uid():
     return datetime.now().strftime('%Y%m%d%H%M%S') + ''.join(
         random.choices(string.ascii_lowercase + string.digits, k=5)
@@ -51,7 +51,7 @@ def uid():
 def check_admin(data):
     return data and data.get('password') == ADMIN_PASSWORD
 
-# ── Routes ──────────────────────────────────────────────
+# ── Routes ──────────────────────────────────────────────────────
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -92,6 +92,17 @@ def get_signups():
         result.append({'id': s.id, 'name': s.name, 'dates': date_ids})
     return jsonify(result)
 
+@app.route('/api/signups/lookup', methods=['GET'])
+def lookup_signup():
+    name = (request.args.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Nom requis'}), 400
+    existing = Signup.query.filter(db.func.lower(Signup.name) == name.lower()).first()
+    if not existing:
+        return jsonify({'found': False})
+    date_ids = [sd.date_id for sd in SignupDate.query.filter_by(signup_id=existing.id).all()]
+    return jsonify({'found': True, 'id': existing.id, 'name': existing.name, 'dates': date_ids})
+
 @app.route('/api/signups', methods=['POST'])
 def add_signup():
     data = request.get_json()
@@ -99,10 +110,17 @@ def add_signup():
     selected = data.get('dates') or []
     if not name:
         return jsonify({'error': 'Nom requis'}), 400
-    if not selected:
-        return jsonify({'error': 'Aucune séance sélectionnée'}), 400
 
     existing = Signup.query.filter(db.func.lower(Signup.name) == name.lower()).first()
+
+    # 0 dates = cancel inscription
+    if not selected:
+        if existing:
+            SignupDate.query.filter_by(signup_id=existing.id).delete()
+            Signup.query.filter_by(id=existing.id).delete()
+            db.session.commit()
+            return jsonify({'cancelled': True, 'name': name})
+        return jsonify({'error': 'Aucune inscription trouvée pour ce nom'}), 404
 
     # Create or update
     if existing:
@@ -117,6 +135,19 @@ def add_signup():
 
     db.session.commit()
     return jsonify({'id': signup_id, 'name': name, 'dates': selected}), 201
+
+@app.route('/api/signups/<signup_id>/dates/<date_id>', methods=['POST'])
+def add_signup_date(signup_id, date_id):
+    """Add a participant to one specific date. Public (no password needed)."""
+    if not Signup.query.get(signup_id):
+        return jsonify({'error': 'Inscription non trouvée'}), 404
+    if not CourseDate.query.get(date_id):
+        return jsonify({'error': 'Séance non trouvée'}), 404
+    existing = SignupDate.query.filter_by(signup_id=signup_id, date_id=date_id).first()
+    if not existing:
+        db.session.add(SignupDate(signup_id=signup_id, date_id=date_id))
+        db.session.commit()
+    return jsonify({'ok': True})
 
 @app.route('/api/signups/<signup_id>/dates/<date_id>', methods=['DELETE'])
 def remove_signup_date(signup_id, date_id):
@@ -167,7 +198,7 @@ def check_auth():
         return jsonify({'ok': True})
     return jsonify({'error': 'Mot de passe incorrect'}), 401
 
-# ── Startup ───────────────────────────────────────────────
+# ── Startup ─────────────────────────────────────────────────────
 with app.app_context():
     db.create_all()
 
