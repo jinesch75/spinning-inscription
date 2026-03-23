@@ -37,7 +37,7 @@
     .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 24px; }
 
     label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
-    input[type="text"], input[type="password"], input[type="datetime-local"] { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); outline: none; transition: border-color 0.2s; }
+    input[type="text"], input[type="password"], input[type="datetime-local"], input[type="date"], input[type="time"] { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); outline: none; transition: border-color 0.2s; }
     input:focus { border-color: var(--primary); }
 
     .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: background 0.18s, transform 0.1s; }
@@ -188,66 +188,11 @@
     <h2 class="section-title">Accès administration</h2>
     <div class="section-sub">Réservé à Julie 🔒</div>
     <label for="admin-pass">Mot de passe</label>
-    <input type="password" id="admin-pass" placeholder="••••••••"
-           onkeydown="if(event.key==='Enter') doAdminLogin()" />
-    <div class="error-msg" id="login-error">Mot de passe incorrect.</div>
-    <div style="margin-top:16px;">
-      <button class="btn btn-primary" onclick="doAdminLogin()">🔓 Connexion</button>
-    </div>
-  </div>
-
-  <div class="hidden" id="admin-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:24px;">
-      <div>
-        <div class="section-title">Tableau de bord</div>
-        <div class="section-sub" style="margin-bottom:0;">Gérez les séances et les inscriptions.</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 Exporter CSV</button>
-        <button class="btn btn-secondary btn-sm" onclick="adminLogout()">🔒 Déconnexion</button>
-      </div>
-    </div>
-
-    <!-- Stats -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
-      <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-sessions">0</div>
-        <div style="font-size:0.85rem;color:var(--muted);">Séances planifiées</div>
-      </div>
-      <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-participants">0</div>
-        <div style="font-size:0.85rem;color:var(--muted);">Participants inscrits</div>
-      </div>
-      <div class="card" style="padding:18px;text-align:center;">
-        <div style="font-size:2rem;font-weight:800;color:var(--primary);" id="stat-total">0</div>
-        <div style="font-size:0.85rem;color:var(--muted);">Total présences</div>
-      </div>
-    </div>
-
-    <!-- Add date -->
-    <div class="card">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter des séances</div>
-      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Cliquez sur les <strong>mercredis</strong> (19h–20h) et <strong>dimanches</strong> (10h–11h) pour sélectionner des séances. <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:1px 6px;font-size:0.8rem;">vert</span> = à ajouter &nbsp;<span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;border-radius:4px;padding:1px 6px;font-size:0.8rem;">orange</span> = déjà planifiée</span></div>
-      <div class="cal-nav">
-        <button onclick="calPrev()">&#8249;</button>
-        <span id="cal-month-label"></span>
-        <button onclick="calNext()">&#8250;</button>
-      </div>
-      <div class="cal-days-header">
-        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
-      </div>
-      <div class="cal-days" id="cal-grid"></div>
-      <div id="cal-selected-summary" style="margin-top:12px;font-size:0.83rem;color:var(--muted);min-height:1.4em;"></div>
-      <div style="margin-top:14px;">
-        <button class="btn btn-primary" id="add-dates-btn" onclick="addSelectedDates()">Ajouter les séances sélectionnées</button>
-      </div>
-    </div>
-
-    <!-- Dates list -->
-    <div class="card">
-      <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">📅 Séances planifiées</div>
-      <div class="dates-list" id="admin-dates-list"></div>
-      <div id="no-admin-dates" class="empty hidden">
+    <input type="password" id="admin-pass" placeholder="••••••••" ���W�F�v��&�b�WfV�B�W����tV�FW"r�F�F֖���v�ₒ"���F�b6�73�&W'&�"��6r"�C�&��v���W'&�"#���BFR76R��6�'&V7B���F�c��F�b7G��S�&�&v���F��������(���������ѽ��������Ѹ��Ѹ��ɥ���䈁�������􉑽����1���������~RL�
+����᥽����ѽ��(����𽑥��(��𽑥��((���؁�����􉡥��������􉅑�����������(�����؁��屔􉑥�����陱��텱�����ѕ��鍕�ѕ�����ѥ�䵍��ѕ������������ݕ��홱���Ʌ���Ʌ�흅���������ɝ������ѽ��������(���������(���������؁������͕�ѥ���ѥѱ���Q�����ԁ�����ɐ𽑥��(���������؁������͕�ѥ����Ո����屔􉵅ɝ������ѽ������ɕ聱�́������́�Ё��́��͍ɥ�ѥ��̸𽑥��(������𽑥��(�������؁��屔􉑥�����陱��흅�����홱���Ʌ���Ʌ���(�����������ѽ��������Ѹ��Ѹ�͕������䁉Ѹ�ʹ���������������
+MX�����~N������ѕȁ
+MX���ѽ��(�����������ѽ��������Ѹ��Ѹ�͕������䁉Ѹ�ʹ���������􉅑���1����Р����~RH�������᥽����ѽ��(������𽑥��(����𽑥��((���������Mх�̀���(�����؁��屔􉑥������ɥ��ɥ��ѕ����є����յ���ɕ���С��Ѽ���б�����������řȤ�흅���������ɝ������ѽ��������(�������؁�����􉍅ɐ����屔��������������ѕ�е�����鍕�ѕ���(���������؁��屔􉙽�еͥ���ɕ�홽�еݕ��������퍽����مȠ���ɥ����숁����хе͕�ͥ��̈��𽑥��(���������؁��屔􉙽�еͥ������ɕ�퍽����مȠ����ѕ����O�����́����������𽑥��(������𽑥��(�������؁�����􉍅ɐ����屔��������������ѕ�е�����鍕�ѕ���(���������؁��屔􉙽�еͥ���ɕ�홽�еݕ��������퍽����مȠ���ɥ����숁����хе���ѥ������̈��𽑥��(���������؁��屔􉙽�еͥ������ɕ�퍽����مȠ����ѕ����A��ѥ������́��͍ɥ��𽑥��(������𽑥��(�������؁�����􉍅ɐ����屔��������������ѕ�е�����鍕�ѕ���(���������؁��屔􉙽�еͥ���ɕ�홽�еݕ��������퍽����مȠ���ɥ����숁����хеѽх����𽑥��(���������؁��屔􉙽�еͥ������ɕ�퍽����مȠ����ѕ����Q�х�����͕����𽑥��(������𽑥��(����𽑥��((��������������є����(�����؁�����􉍅ɐ��(�������؁��屔􉙽�еͥ��ĸ��ɕ�홽�еݕ�����������ɝ������ѽ���������zT����ѕȁ��́�������𽑥��(�������؁��屔􉙽�еͥ������ɕ�퍽����مȠ����ѕ�����ɝ������ѽ��������
+���Օ���ȁ��̀���ɽ�����ɍɕ������ɽ������壊L������Ѐ���ɽ���������������ɽ���������L�Š�����ȁ�����ѥ����ȁ��́������̸���������屔􉑥�����饹���������텱�����ѕ��鍕�ѕ�흅�����홱���Ʌ���Ʌ�����������屔􉉅���ɽչ�荘�����퉽ɑ�������ͽ��������ݐ�퍽��������͐퉽ɑ�ȵɅ������������������������홽�еͥ�����ɕ���ٕ����������������ѕȀ��������������屔􉉅���ɽչ�荙��ݕ�퉽ɑ�������ͽ�����������퍽���荌�����퉽ɑ�ȵɅ������������������������홽�еͥ�����ɕ����Ʌ������������������������������𽑥��(�������؁�����􉍅����؈�(�����������ѽ���������􉍅�Aɕؠ�������������ѽ��(����������������􉍅�����Ѡ��������������(�����������ѽ���������􉍅�9��Р�������������ѽ��(������𽑥��(�������؁�����􉍅�����̵�����Ȉ�(��������������0������������4������������4������������(������������X������������L������������������(������𽑥��(�������؁�����􉍅�����̈���􉍅���ɥ���𽑥��(�������؁��􉍅��͕���ѕ���յ���䈁��屔􉵅ɝ���ѽ������홽�еͥ������ɕ�퍽����مȠ����ѕ��������������ĸѕ���𽑥��(�������؁��屔􉵅ɝ���ѽ��������(�����������ѽ��������Ѹ��Ѹ��ɥ���䈁��􉅑����ѕ̵�Ѹ���������􉅑�M����ѕ��ѕ̠������ѕȁ��́������́�����ѥ���������ѽ��(������𽑥��(����𽑥��((���������=�����������̀���(�����؁�����􉍅ɐ��(�������؁��屔􉙽�еͥ��ĸ��ɕ�홽�еݕ�����������ɝ������ѽ���������~N0����ѕȁչ����������ፕ�ѥ�������𽑥��(�������؁��屔􉙽�еͥ������ɕ�퍽����مȠ����ѕ�����ɝ������ѽ��������A��ȁ��́����́�դ����ѽ����Ё��́ո���ɍɕ����ԁ����������P�����ͥ�͕聸������є��Օ������є��Ё���ɔ�𽑥��(�������؁�����􉅑����є�ɽ܈�(���������؁�����􉙥�����(����������񱅉������􉽹�������є���є𽱅����(�������������Ё����􉑅є����􉽹�������є����(��������𽑥��(���������؁�����􉙥�������屔􉵅�ݥ�Ѡ��������(����������񱅉������􉽹�����ѥ����!��ɔ𽱅����(�������������Ё�����ѥ������􉽹�����ѥ����م�Ք����������(��������𽑥��(���������؁�����􉙥�����(����������񱅉������􉽹������������1��������ѥ������𽱅����(�������������Ё�����ѕ�Ј���􉽹���������������������������O���������Ʌ��Ʌ��������(��������𽑥��(���������؁��屔􉑥�����陱��텱�����ѕ��陱�ൕ����(�������������ѽ��������Ѹ��Ѹ��ɥ���䈁��􉽹������Ѹ���������􉅑�=��=���є�����~N0����ѕ����ѽ��(��������𽑥��(������𽑥��(����𽑥��((����������ѕ́���Ѐ���(�����؁�����􉍅ɐ��(�������؁��屔􉙽�еͥ��ĸ��ɕ�홽�еݕ�����������ɝ������ѽ���������~N�O�����́����������𽑥��(�������؁�����􉑅ѕ̵���Ј���􉅑������ѕ̵���Ј�𽑥��(�������؁��􉹼���in-dates" class="empty hidden">
         <div class="emoji">📅</div>
         <div>Aucune séance planifiée pour l'instant.</div>
       </div>
@@ -315,7 +260,7 @@ async function loadAll() {
   data = { dates, signups };
 }
 
-// ── Views ──────────────────────────────────────────────────────
+// ── Views ─────────────────────────────────────────────────────
 function showView(v) {
   document.getElementById('view-participant').classList.toggle('hidden', v !== 'participant');
   document.getElementById('view-admin').classList.toggle('hidden', v !== 'admin');
@@ -590,6 +535,27 @@ async function addSelectedDates() {
       await api('POST', '/api/dates', { password: adminPassword, datetime: `${ds}T${time}`, label: '' });
     }
     calSelected.clear();
+    await loadAll();
+    renderAdminPanel();
+  } catch(e) { alert('Erreur : ' + e.message); }
+  finally { btn.disabled = false; }
+}
+
+async function addOneOffDate() {
+  const dateEl = document.getElementById('oneoff-date');
+  const timeEl = document.getElementById('oneoff-time');
+  const labelEl = document.getElementById('oneoff-label');
+  const ds = dateEl.value;
+  const time = timeEl.value || '19:00';
+  if (!ds) { dateEl.style.borderColor = '#dc2626'; dateEl.focus(); return; }
+  dateEl.style.borderColor = '';
+  const btn = document.getElementById('oneoff-btn');
+  btn.disabled = true;
+  try {
+    await api('POST', '/api/dates', { password: adminPassword, datetime: `${ds}T${time}`, label: labelEl.value.trim() });
+    dateEl.value = '';
+    timeEl.value = '19:00';
+    labelEl.value = '';
     await loadAll();
     renderAdminPanel();
   } catch(e) { alert('Erreur : ' + e.message); }
