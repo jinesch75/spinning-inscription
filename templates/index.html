@@ -218,7 +218,7 @@
     </div>
 
     <!-- Add date -->
-    <div class="card"> 
+    <div class="card">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;">➕ Ajouter des séances</div>
       <div style="font-size:0.85rem;color:var(--muted);margin-bottom:14px;">Cliquez sur les <strong>mercredis</strong> (19h–20h) et <strong>dimanches</strong> (10h–11h) pour sélectionner des séances. <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;border-radius:4px;padding:1px 6px;font-size:0.8rem;">vert</span> = à ajouter &nbsp;<span style="background:#fff7ed;border:1px solid #fdba74;color:#c2410c;border-radius:4px;padding:1px 6px;font-size:0.8rem;">orange</span> = déjà planifiée</span></div>
       <div class="cal-nav">
@@ -310,6 +310,14 @@ function formatDateShort(isoString) {
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Returns today's date as 'YYYY-MM-DD' in the browser's local timezone.
+// Used to filter past sessions from the participant view.
+function todayStr() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
 
 // ── API calls ─────────────────────────────────────────────────
@@ -407,9 +415,13 @@ async function addSignupDate(el, signupId, dateId) {
 
 function renderSignupGrid() {
   const wrapper = document.getElementById('signup-grid-wrapper');
-  const sorted = [...data.dates].sort((a,b) => a.datetime.localeCompare(b.datetime));
+  // Participant view: only show today's and future sessions.
+  // Past sessions stay visible in the admin view (renderAdminPanel/renderAdminGrid).
+  const today = todayStr();
+  const upcoming = data.dates.filter(d => d.datetime.slice(0, 10) >= today);
+  const sorted = [...upcoming].sort((a,b) => a.datetime.localeCompare(b.datetime));
   document.getElementById('total-count-label').textContent =
-    `${data.signups.length} participant(s) · ${sorted.length} séance(s)`;
+    `${data.signups.length} participant(s) · ${sorted.length} séance(s) à venir`;
 
   if (data.signups.length === 0 || sorted.length === 0) {
     wrapper.innerHTML = `<div class="empty"><div class="emoji">👥</div><div>Aucune inscription pour le moment.</div></div>`;
